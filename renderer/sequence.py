@@ -1,20 +1,22 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
 from moviepy.editor import *
 import os
+from PIL import Image
 
 app = FastAPI()
 
 DATA = "/app/data"
 OUT = f"{DATA}/output/final.mp4"
 
-class SequenceInput(BaseModel):
-    correct: str  # "A", "B", "C", or "D"
+# Pillow: kompatybilność z wersją 10+
+try:
+    RESAMPLE = Image.Resampling.LANCZOS
+except AttributeError:
+    RESAMPLE = Image.ANTIALIAS
 
 @app.post("/generate-sequence")
 def generate_sequence():
     try:
-        correct = detect_correct_key()
         width = 1080
         height = 1920
         button_y_start = 600
@@ -23,14 +25,14 @@ def generate_sequence():
         countdown_start = 5
         reveal_start = 8
 
-        # 1. Background video (looped to 12s)
+        # 1. Background
         bg = VideoFileClip(f"{DATA}/video/background.mp4").loop(duration=12).resize((width, height))
 
         # 2. Intro audio
         intro_audio = AudioFileClip(f"{DATA}/audio/intro.mp3")
         bg = bg.set_audio(intro_audio)
 
-        # 3. Odpowiedzi pojawiające się jedna po drugiej
+        # 3. Buttons (A–D)
         answers = []
         for i, key in enumerate(["A", "B", "C", "D"]):
             clip = (ImageClip(f"{DATA}/images/output_buttons/answer_{key}.png")
@@ -40,7 +42,7 @@ def generate_sequence():
                     .set_start(1 + i * 0.3))
             answers.append(clip)
 
-        # 4. Countdown: 3 → 2 → 1
+        # 4. Countdown
         countdown_clips = []
         for i, num in enumerate(["3", "2", "1"]):
             txt = (TextClip(num, fontsize=200, color='white', font='Arial-Bold')
@@ -50,17 +52,17 @@ def generate_sequence():
                    .fadein(0.3).fadeout(0.3))
             countdown_clips.append(txt)
 
-        # 5. Highlight poprawnej odpowiedzi
+        # 5. Highlight (zawsze jeden plik)
         highlight = (ImageClip(f"{DATA}/images/output_buttons/highlight_correct.png")
-                     .set_position(("center", button_y_start + ["A", "B", "C", "D"].index(correct) * gap))
+                     .set_position(("center", button_y_start + 1 * gap))  # ← domyślnie druga pozycja (B)
                      .set_start(reveal_start)
                      .set_duration(3)
                      .fadein(0.5))
 
-        # 6. Outro audio (reveal lektor)
+        # 6. Reveal audio
         outro_audio = AudioFileClip(f"{DATA}/audio/reveal.mp3")
 
-        # 7. Składanie całości
+        # 7. Składanie
         full = CompositeVideoClip([bg] + answers + countdown_clips + [highlight])
         full = full.set_audio(CompositeAudioClip([
             intro_audio.set_start(0),
@@ -68,17 +70,10 @@ def generate_sequence():
         ]))
 
         # 8. Eksport
+        os.makedirs(os.path.dirname(OUT), exist_ok=True)
         full.write_videofile(OUT, fps=30)
 
         return {"status": "success", "file": OUT}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-def detect_correct_key():
-    for key in ["A", "B", "C", "D"]:
-        f = f"/app/data/images/output_buttons/highlight_correct.png"
-        if os.path.exists(f):
-            return key
-    raise ValueError("No highlight_correct file found")

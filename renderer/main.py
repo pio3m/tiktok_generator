@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from sequence import generate_sequence, detect_correct_key
+from sequence import generate_sequence
 
 app = FastAPI()
 
