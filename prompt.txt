@@ -1,0 +1,32 @@
+Zamień podaną zajawkę w pełną narrację Pana Zagadki.
+
+Styl: tajemniczy, powolny, lekko złowieszczy.  
+Nie odpowiadaj na zagadkę — tylko intrygująco ją przedstaw.
+
+Użyj tego szablonu:
+
+---
+Zagadkę czas zacząć…
+
+Posłuchaj uważnie:  
+[WSTAW ZAJAWKĘ]
+
+Ale uwaga — tylko nieliczni dostrzegą, co tu nie gra…
+
+Masz pomysł?  
+Napisz w komentarzu…
+---
+
+📥 **Przykładowy input (zajawka):**  
+Na tym obrazie widzimy bibliotekę. Ale ktoś usunął jeden szczegół.
+
+📤 **Oczekiwany output:**  
+Zagadkę czas zacząć…
+
+Posłuchaj uważnie:  
+Na tym obrazie widzimy bibliotekę. Ale ktoś usunął jeden szczegół.
+
+Ale uwaga — tylko nieliczni dostrzegą, co tu nie gra…
+
+Masz pomysł?  
+Napisz w komentarzu…

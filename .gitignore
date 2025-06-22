@@ -1,0 +1,71 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pkl
+*.egg-info/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Docker
+*.pid
+*.log
+*.sock
+
+# Environment
+.env
+.env.*
+
+# n8n
+n8n_data/
+
+# Output and data
+output/
+data/
+
+# Assets (if generated)
+assets/
+
+# Ignore video and audio outputs
+*.mp4
+*.mp3
+*.webp
+
+# Ignore renderer and scripts cache
+renderer/__pycache__/
+scripts/__pycache__/
+
+# Ignore pip cache
+pip-wheel-metadata/
+__pypackages__/
+
+# Ignore SQLite DB
+*.sqlite
+
+# Ignore backup files
+*~
+*.bak
+*.swp
+*.swo
+
+# Ignore test artifacts
+*.coverage
+.coverage
+htmlcov/
+
+# Ignore node_modules (if any)
+node_modules/

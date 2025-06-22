@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  n8n:
+    build: .
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=superbezpiecznehaslo
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - WEBHOOK_URL=http://localhost:5678
+      - TZ=Europe/Warsaw
+    volumes:
+      - ./n8n_data:/home/node/.n8n
+      - ./data/audio:/app/data/audio
+      - ./data/json:/app/data/json
+      - ./data/images:/app/data/images
+      - ./data/images/output_buttons:/app/data/images/output_buttons
+      - ./data/video:/app/data/video
+      - ./data/output:/app/output
+      - ./assets:/app/assets
+      - ./scripts:/app/scripts
+      - ./renderer:/app/renderer
+    depends_on:
+      - quiz-python
+      - quiz-renderer
+
+  quiz-python:
+    image: python:3.10-slim
+    container_name: quiz-python
+    working_dir: /app/scripts
+    volumes:
+      - ./scripts:/app/scripts
+      - ./data/json:/app/data/json
+      - ./data/images/output_buttons:/app/data/images/output_buttons
+    entrypoint: /bin/sh -c
+    command: |
+      pip install --no-cache-dir -r /app/scripts/requirements.txt && tail -f /dev/null
+
+  quiz-renderer:
+    image: python:3.10-slim
+    container_name: quiz-renderer
+    working_dir: /app/renderer
+    volumes:
+      - ./renderer:/app/renderer
+      - ./data/json:/app/data/json
+      - ./data/audio:/app/data/audio
+      - ./data/images:/app/data/images
+      - ./data/video:/app/data/video
+      - ./data/output:/app/output
+      - ./assets:/app/assets
+    entrypoint: /bin/sh -c
+    command: |
+      pip install --no-cache-dir -r /app/renderer/requirements.txt && tail -f /dev/null
