@@ -29,17 +29,6 @@ services:
       - quiz-api
       - quiz-renderer
 
-  # quiz-python:
-  #   image: python:3.10-slim
-  #   container_name: quiz-python
-  #   working_dir: /app/scripts
-  #   volumes:
-  #     - ./scripts:/app/scripts
-  #     - ./data/json:/app/data/json
-  #     - ./data/images/output_buttons:/app/data/images/output_buttons
-  #   entrypoint: ["/bin/sh", "-c"]
-  #   command: pip install --no-cache-dir -r /app/scripts/requirements.txt && tail -f /dev/null
-
   quiz-api:
     build:
       context: ./scripts
@@ -52,16 +41,14 @@ services:
     restart: unless-stopped
 
   quiz-renderer:
-    image: python:3.10-slim
-    container_name: quiz-renderer
-    working_dir: /app/renderer
-    volumes:
-      - ./renderer:/app/renderer
-      - ./data/json:/app/data/json
-      - ./data/audio:/app/data/audio
-      - ./data/images:/app/data/images
-      - ./data/video:/app/data/video
-      - ./data/output:/app/output
-      - ./assets:/app/assets
-    entrypoint: ["/bin/sh", "-c"]
-    command: pip install --no-cache-dir -r /app/renderer/requirements.txt && tail -f /dev/null
+      build:
+        context: ./renderer
+      container_name: quiz-renderer
+      working_dir: /app
+      volumes:
+        - ./renderer:/app
+        - ./data:/app/data
+      ports:
+          - "8001:8000"
+      restart: unless-stopped
+
