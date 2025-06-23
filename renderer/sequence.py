@@ -10,69 +10,83 @@ OUT = f"{DATA}/output/final.mp4"
 @app.post("/generate-sequence")
 def generate_sequence():
     try:
-        width = 1080
-        height = 1920
-        button_y_start = 600
-        gap = 150
-        button_duration = 4
+        width, height = 1080, 1920
+        button_y_start, gap = 600, 150
 
-        # 1. Background
-        bg = VideoFileClip(f"{DATA}/video/background.mp4").loop(duration=15).resize((width, height))
-
-        # 2. Intro audio
+        # 🎧 AUDIO SEGMENTY
         intro_audio = AudioFileClip(f"{DATA}/audio/intro.mp3")
-        intro_duration = intro_audio.duration
-        show_answers_start = intro_duration * 0.8
-        countdown_start = intro_duration
-        reveal_start = countdown_start + 5  # po odliczaniu 5s
+        question_audio = AudioFileClip(f"{DATA}/audio/question.mp3")
+        answers_audio = AudioFileClip(f"{DATA}/audio/answers.mp3")
+        reveal_audio = AudioFileClip(f"{DATA}/audio/reveal.mp3")
+        beep = AudioFileClip(f"{DATA}/audio/beep.mp3").volumex(0.6)
 
-        bg = bg.set_audio(intro_audio)
+        intro_dur = intro_audio.duration
+        question_dur = question_audio.duration
+        answers_dur = answers_audio.duration
+        countdown_start = intro_dur + question_dur + answers_dur
+        reveal_start = countdown_start + 3  # po countdown
 
-        # 3. Odpowiedzi A–D
+        total_duration = reveal_start + reveal_audio.duration + 1
+
+        # 🎞️ TŁO
+        bg = VideoFileClip(f"{DATA}/video/background.mp4").loop(duration=total_duration).resize((width, height))
+
+        # 🖼️ PYTANIE – opcjonalna grafika
+        question_img_path = f"{DATA}/images/question.png"
+        question_img = None
+        if os.path.exists(question_img_path):
+            question_img = (ImageClip(question_img_path)
+                            .set_duration(question_dur)
+                            .set_start(intro_dur)
+                            .fadein(0.5)
+                            .set_position("center"))
+
+        # 🔤 ODPOWIEDZI A–D
         answers = []
+        answers_start = intro_dur + question_dur
         for i, key in enumerate(["A", "B", "C", "D"]):
             clip = (ImageClip(f"{DATA}/images/output_buttons/answer_{key}.png")
                     .set_position(("center", button_y_start + i * gap))
-                    .set_duration(4)
+                    .set_duration(answers_dur)
                     .fadein(0.5)
-                    .set_start(show_answers_start + i * 0.3))
+                    .set_start(answers_start + i * 0.3))
             answers.append(clip)
 
-        # 4. Countdown
-        countdown_clips = []
+        # ⏱️ COUNTDOWN
+        countdown = []
         for i, num in enumerate(["3", "2", "1"]):
             txt = (TextClip(num, fontsize=200, color='white', font='DejaVu-Sans-Bold', method='caption')
                    .set_position("center")
                    .set_duration(1)
                    .set_start(countdown_start + i)
                    .fadein(0.3).fadeout(0.3))
-            countdown_clips.append(txt)
+            countdown.append(txt)
 
-        # 5. Beep audio (pikanie)
-        beep_audio = AudioFileClip(f"{DATA}/audio/beep.mp3").volumex(0.6)
-        beep_track = CompositeAudioClip([
-            beep_audio.set_start(countdown_start),
-            beep_audio.set_start(countdown_start + 1),
-            beep_audio.set_start(countdown_start + 2)
-        ])
-
-        # 6. Highlight
+        # ✅ HIGHLIGHT poprawnej odpowiedzi (domyślnie B)
         highlight = (ImageClip(f"{DATA}/images/output_buttons/highlight_correct.png")
-                     .set_position(("center", button_y_start + 1 * gap))  # ← poprawna: B
+                     .set_position(("center", button_y_start + 1 * gap))
                      .set_start(reveal_start)
                      .set_duration(3)
                      .fadein(0.5))
 
-        # 7. Reveal audio
-        outro_audio = AudioFileClip(f"{DATA}/audio/reveal.mp3").volumex(1.0)
-
-        # 8. Composite
-        full = CompositeVideoClip([bg] + answers + countdown_clips + [highlight])
-        full = full.set_audio(CompositeAudioClip([
+        # 🔊 AUDIO CAŁOŚĆ
+        audio = CompositeAudioClip([
             intro_audio.set_start(0),
-            beep_track,
-            outro_audio.set_start(reveal_start)
-        ]))
+            question_audio.set_start(intro_dur),
+            answers_audio.set_start(intro_dur + question_dur),
+            beep.set_start(countdown_start),
+            beep.set_start(countdown_start + 1),
+            beep.set_start(countdown_start + 2),
+            reveal_audio.set_start(reveal_start)
+        ])
+
+        # 🎬 FINALNY KLIP
+        layers = [bg] + answers + countdown + [highlight]
+        if question_img:
+            layers.insert(1, question_img)
+
+        full = CompositeVideoClip(layers)
+        full = full.set_audio(audio)
 
         os.makedirs(os.path.dirname(OUT), exist_ok=True)
         full.write_videofile(OUT, fps=30)
@@ -81,6 +95,7 @@ def generate_sequence():
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/")
 def root():
