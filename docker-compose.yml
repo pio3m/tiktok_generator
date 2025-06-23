@@ -16,12 +16,7 @@ services:
       - TZ=Europe/Warsaw
     volumes:
       - ./n8n_data:/home/node/.n8n
-      - ./data/audio:/app/data/audio
-      - ./data/json:/app/data/json
-      - ./data/images:/app/data/images
-      - ./data/images/output_buttons:/app/data/images/output_buttons
-      - ./data/video:/app/data/video
-      - ./data/output:/app/output
+      - ./data:/app/data:rw
       - ./assets:/app/assets
       - ./scripts:/app/scripts
       - ./renderer:/app/renderer
@@ -46,12 +41,7 @@ services:
       - TZ=Europe/Warsaw
     volumes:
       - ./n8n_data:/home/node/.n8n       # wspólna baza workflowów (do importu/edycji)
-      - ./data/audio:/app/data/audio
-      - ./data/json:/app/data/json
-      - ./data/images:/app/data/images
-      - ./data/images/output_buttons:/app/data/images/output_buttons
-      - ./data/video:/app/data/video
-      - ./data/output:/app/output
+      - ./data:/app/data:rw
       - ./assets:/app/assets
       - ./scripts:/app/scripts
       - ./renderer:/app/renderer
@@ -65,7 +55,7 @@ services:
     working_dir: /app
     volumes:
       - ./scripts:/app
-      - ./data:/app/data
+      - ./data:/app/data:rw
     restart: unless-stopped
 
   quiz-renderer:
@@ -75,7 +65,7 @@ services:
       working_dir: /app
       volumes:
         - ./renderer:/app
-        - ./data:/app/data
+        - ./data:/app/data:rw
       ports:
           - "8001:8000"
       restart: unless-stopped

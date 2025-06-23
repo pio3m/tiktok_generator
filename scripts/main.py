@@ -17,7 +17,7 @@ async def generate_buttons(quiz: QuizData):
 async def handle_generate_question_image(payload: QuestionInput):
 
     try:
-        path = generate_question_image(payload.text)
+        path = generate_question_image(payload)
         return {"status": "success", "file": path}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

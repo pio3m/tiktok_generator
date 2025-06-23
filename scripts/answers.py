@@ -4,11 +4,13 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import os
 
 # Konfiguracja
-OUTPUT_DIR = "/app/data/images/output_buttons"
+# TODO zapis do sluga
+PREFIX_DIR = "/app/data/"
+OUTPUT_DIR = "/images/output_buttons"
 FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
 # Upewnij się, że folder istnieje
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+# os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # Dane wejściowe
 class QuizData(BaseModel):
@@ -17,6 +19,7 @@ class QuizData(BaseModel):
     C: str
     D: str
     correct: Literal["A", "B", "C", "D"]
+    slug: str
 
 # Funkcja rysująca pojedynczy przycisk
 def draw_button_image(text, width=900, height=120, bg="#333355", font=None, font_color="white", shadow=True):
@@ -63,6 +66,11 @@ def draw_button_image(text, width=900, height=120, bg="#333355", font=None, font
 
 # Główna funkcja API
 def generate_answer_buttons(quiz: QuizData):
+    
+    # utworzenie odpowiedniego folderu
+    if not os.path.exists(PREFIX_DIR + quiz.slug + OUTPUT_DIR):
+        os.makedirs(PREFIX_DIR + quiz.slug + OUTPUT_DIR)    
+
     width, height = 900, 120
     font_size = 48
     font_color = "white"
@@ -74,12 +82,12 @@ def generate_answer_buttons(quiz: QuizData):
     for key in ["A", "B", "C", "D"]:
         text = f"{key}: {getattr(quiz, key)}"
         img = draw_button_image(text, width, height, bg=base_color, font=font, font_color=font_color)
-        img.save(os.path.join(OUTPUT_DIR, f"answer_{key}.png"))
+        img.save(os.path.join(PREFIX_DIR + quiz.slug + OUTPUT_DIR, f"answer_{key}.png"))
 
     # 2. Osobno podświetlenie poprawnej odpowiedzi
     correct_key = quiz.correct
     correct_text = f"{correct_key}: {getattr(quiz, correct_key)}"
     highlight_img = draw_button_image(correct_text, width, height, bg=highlight_color, font=font, font_color=font_color)
-    highlight_img.save(os.path.join(OUTPUT_DIR, "highlight_correct.png"))
+    highlight_img.save(os.path.join(PREFIX_DIR + quiz.slug + OUTPUT_DIR, "highlight_correct.png"))
 
-    return OUTPUT_DIR
+    return PREFIX_DIR + quiz.slug + OUTPUT_DIR

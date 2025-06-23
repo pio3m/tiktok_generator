@@ -2,20 +2,23 @@ from PIL import Image, ImageDraw, ImageFont
 import os
 import textwrap
 from pydantic import BaseModel
-
 from fastapi import HTTPException
 
 class QuestionInput(BaseModel):
     text: str
+    slug: str
 
-
-DATA = "/app/data/images"
-OUT_PATH = f"{DATA}/question.png"
-FONT_PATH = "/app/data/fonts/DejaVuSans-Bold.ttf"
+PREFIX_DIR = "/app/data"
+OUT_PATH = "images"
+FONT_PATH = os.path.join(PREFIX_DIR, "fonts", "DejaVuSans-Bold.ttf")
 
 def generate_question_image(payload: QuestionInput):
     try:
-        text = payload
+        # Przygotowanie ścieżki wyjściowej
+        out_dir = os.path.join(PREFIX_DIR, payload.slug, OUT_PATH)
+        os.makedirs(out_dir, exist_ok=True)
+
+        text = payload.text
         width = 1080
         font_size = 72
         outline_range = 2
@@ -45,10 +48,10 @@ def generate_question_image(payload: QuestionInput):
             # Tekst główny
             draw.text((x, y), line, font=font, fill=text_color)
 
-        os.makedirs(DATA, exist_ok=True)
-        img.save(OUT_PATH)
+        output_file = os.path.join(out_dir, "question.png")
+        img.save(output_file)
 
-        return {"status": "success", "file": OUT_PATH}
+        return {"status": "success", "file": os.path.join("/", OUT_PATH, "question.png")}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
