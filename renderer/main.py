@@ -4,10 +4,10 @@ from sequence import generate_sequence
 app = FastAPI()
 
 @app.post("/generate-sequence")
-def handle_generate_sequence():
+def handle_generate_sequence(slug: str):
     try:
        
-        result = generate_sequence()
+        result = generate_sequence(slug)
         return {"status": "success", "file": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
