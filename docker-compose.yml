@@ -12,7 +12,7 @@ services:
       - N8N_BASIC_AUTH_PASSWORD=superbezpiecznehaslo
       - N8N_HOST=localhost
       - N8N_PORT=5678
-      - WEBHOOK_URL=http://localhost:5678
+      - WEBHOOK_URL=http://n8n-master:5678
       - TZ=Europe/Warsaw
     volumes:
       - ./n8n_data:/home/node/.n8n
@@ -28,6 +28,33 @@ services:
     depends_on:
       - quiz-api
       - quiz-renderer
+
+  
+  n8n-runner:
+    build: .
+    container_name: n8n-runner
+    restart: always
+    ports:
+      - "5679:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=runner
+      - N8N_BASIC_AUTH_PASSWORD=superhaslo
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - WEBHOOK_URL=http://n8n-runner:5678
+      - TZ=Europe/Warsaw
+    volumes:
+      - ./n8n_data:/home/node/.n8n       # wspólna baza workflowów (do importu/edycji)
+      - ./data/audio:/app/data/audio
+      - ./data/json:/app/data/json
+      - ./data/images:/app/data/images
+      - ./data/images/output_buttons:/app/data/images/output_buttons
+      - ./data/video:/app/data/video
+      - ./data/output:/app/output
+      - ./assets:/app/assets
+      - ./scripts:/app/scripts
+      - ./renderer:/app/renderer
 
   quiz-api:
     build:
