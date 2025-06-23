@@ -7,49 +7,73 @@ app = FastAPI()
 DATA = "/app/data"
 OUT = f"{DATA}/output/final.mp4"
 
+# PARAMETRY MONTAŻU
+TIMING = {
+    "intro_duration": None,  # wyliczane
+    "pause_after_intro": 0.5,
+    "question_fadein": 0.5,
+    "pause_after_question": 0.5,
+    "answers_fadein": 0.5,
+    "delay_between_answers": 0.3,
+    "pause_after_answers": 0.8,
+    "countdown_gap": 1.0,
+    "highlight_delay": 0.5,
+    "highlight_duration": 3,
+}
+
 @app.post("/generate-sequence")
 def generate_sequence():
     try:
         width, height = 1080, 1920
         button_y_start, gap = 600, 150
 
-        # 🎧 AUDIO SEGMENTY
+        # 🔊 AUDIO
         intro_audio = AudioFileClip(f"{DATA}/audio/intro.mp3")
         question_audio = AudioFileClip(f"{DATA}/audio/question.mp3")
         answers_audio = AudioFileClip(f"{DATA}/audio/answers.mp3")
         reveal_audio = AudioFileClip(f"{DATA}/audio/reveal.mp3")
         beep = AudioFileClip(f"{DATA}/audio/beep.mp3").volumex(0.6)
 
-        intro_dur = intro_audio.duration
-        question_dur = question_audio.duration
-        answers_dur = answers_audio.duration
-        countdown_start = intro_dur + question_dur + answers_dur
-        reveal_start = countdown_start + 3  # po countdown
-
-        total_duration = reveal_start + reveal_audio.duration + 1
-
         # 🎞️ TŁO
+        total_duration = (
+            intro_audio.duration +
+            TIMING["pause_after_intro"] +
+            question_audio.duration +
+            TIMING["pause_after_question"] +
+            answers_audio.duration +
+            TIMING["pause_after_answers"] +
+            3 * TIMING["countdown_gap"] +
+            TIMING["highlight_delay"] +
+            reveal_audio.duration + 1
+        )
+
         bg = VideoFileClip(f"{DATA}/video/background.mp4").loop(duration=total_duration).resize((width, height))
 
-        # 🖼️ PYTANIE – opcjonalna grafika
+        # CZASY STARTOWE POSZCZEGÓLNYCH SEGMENTÓW
+        t_intro = 0
+        t_question = t_intro + intro_audio.duration + TIMING["pause_after_intro"]
+        t_answers = t_question + question_audio.duration + TIMING["pause_after_question"]
+        t_countdown = t_answers + answers_audio.duration + TIMING["pause_after_answers"]
+        t_reveal = t_countdown + 3 * TIMING["countdown_gap"] + TIMING["highlight_delay"]
+
+        # 🖼️ PYTANIE (question.png)
         question_img_path = f"{DATA}/images/question.png"
         question_img = None
         if os.path.exists(question_img_path):
             question_img = (ImageClip(question_img_path)
-                            .set_duration(question_dur)
-                            .set_start(intro_dur)
-                            .fadein(0.5)
+                            .set_duration(question_audio.duration)
+                            .set_start(t_question)
+                            .fadein(TIMING["question_fadein"])
                             .set_position("center"))
 
-        # 🔤 ODPOWIEDZI A–D
+        # 🅰️ ODPOWIEDZI A–D
         answers = []
-        answers_start = intro_dur + question_dur
         for i, key in enumerate(["A", "B", "C", "D"]):
             clip = (ImageClip(f"{DATA}/images/output_buttons/answer_{key}.png")
                     .set_position(("center", button_y_start + i * gap))
-                    .set_duration(answers_dur)
-                    .fadein(0.5)
-                    .set_start(answers_start + i * 0.3))
+                    .set_duration(answers_audio.duration)
+                    .fadein(TIMING["answers_fadein"])
+                    .set_start(t_answers + i * TIMING["delay_between_answers"]))
             answers.append(clip)
 
         # ⏱️ COUNTDOWN
@@ -58,35 +82,34 @@ def generate_sequence():
             txt = (TextClip(num, fontsize=200, color='white', font='DejaVu-Sans-Bold', method='caption')
                    .set_position("center")
                    .set_duration(1)
-                   .set_start(countdown_start + i)
+                   .set_start(t_countdown + i * TIMING["countdown_gap"])
                    .fadein(0.3).fadeout(0.3))
             countdown.append(txt)
 
-        # ✅ HIGHLIGHT poprawnej odpowiedzi (domyślnie B)
+        # ✅ HIGHLIGHT poprawnej odpowiedzi (zakładamy B = index 1)
         highlight = (ImageClip(f"{DATA}/images/output_buttons/highlight_correct.png")
                      .set_position(("center", button_y_start + 1 * gap))
-                     .set_start(reveal_start)
-                     .set_duration(3)
+                     .set_start(t_reveal)
+                     .set_duration(TIMING["highlight_duration"])
                      .fadein(0.5))
 
-        # 🔊 AUDIO CAŁOŚĆ
+        # 🔊 AUDIO MIX
         audio = CompositeAudioClip([
-            intro_audio.set_start(0),
-            question_audio.set_start(intro_dur),
-            answers_audio.set_start(intro_dur + question_dur),
-            beep.set_start(countdown_start),
-            beep.set_start(countdown_start + 1),
-            beep.set_start(countdown_start + 2),
-            reveal_audio.set_start(reveal_start)
+            intro_audio.set_start(t_intro),
+            question_audio.set_start(t_question),
+            answers_audio.set_start(t_answers),
+            beep.set_start(t_countdown),
+            beep.set_start(t_countdown + 1),
+            beep.set_start(t_countdown + 2),
+            reveal_audio.set_start(t_reveal)
         ])
 
-        # 🎬 FINALNY KLIP
+        # FINALNA KOMPOZYCJA
         layers = [bg] + answers + countdown + [highlight]
         if question_img:
             layers.insert(1, question_img)
 
-        full = CompositeVideoClip(layers)
-        full = full.set_audio(audio)
+        full = CompositeVideoClip(layers).set_audio(audio)
 
         os.makedirs(os.path.dirname(OUT), exist_ok=True)
         full.write_videofile(OUT, fps=30)
@@ -95,7 +118,6 @@ def generate_sequence():
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @app.get("/")
 def root():
