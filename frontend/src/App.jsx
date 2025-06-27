@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { ClipLoader } from "react-spinners";
+
+import { CheckCircle, Loader, Clock } from 'lucide-react';
 
 export default function App() {
   const [question, setQuestion] = useState('');
@@ -7,18 +10,51 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('basic');
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState(null);
+  const [elapsed, setElapsed] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
+
+  const steps = [
+    'Generating text',
+    'Generating audio',
+    'Generating images',
+    'Compositing video',
+    'Final export'
+  ];
+
+  useEffect(() => {
+    let interval;
+    if (loading) {
+      setElapsed(0);
+      interval = setInterval(() => {
+        setElapsed((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [loading]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setResponse(null);
+    setCurrentStep(0);
 
     const payload = { question, style, category };
-    console.log('Sending:', payload);
-    setTimeout(() => {
-      setResponse({ status: 'ok', ...payload });
-      setLoading(false);
-    }, 1500);
+
+    const endpoint = 'http://localhost:5678/webhook-test/d6745df8-6e8c-4186-8ef1-73213526f7ad';
+
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      setResponse(data);
+    } catch (err) {
+      setResponse({ error: 'Błąd połączenia z backendem' });
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -26,7 +62,7 @@ export default function App() {
       {/* LEWA KOLUMNA */}
       <div className="basis-1/2 flex flex-col items-center justify-center relative p-8 bg-white">
         <img
-          src="/logo.png" // Podmień na ścieżkę do swojego logo
+          src="/logo.png" // Podmień na swoją ścieżkę do logo
           alt="QuizTok Logo"
           className="absolute top-8 left-8 w-40"
         />
@@ -96,6 +132,15 @@ export default function App() {
           </div>
         )}
       </div>
+
+      {/* PEŁNOEKRANOWY SPINNER */}
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex flex-col justify-center items-center z-50">
+          <ClipLoader color="#FF6B00" size={80} />
+          <p className="text-white mt-4 text-lg font-semibold">Generuję wideo... proszę czekać</p>
+          <p className="text-gray-300 text-sm mt-1">Czas: {elapsed}s</p>
+        </div>
+      )}
     </main>
   );
 }
