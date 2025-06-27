@@ -66,9 +66,24 @@ export default function App() {
           alt="QuizTok Logo"
           className="absolute top-8 left-8 w-40"
         />
-        <div className="w-[250px] h-[500px] rounded-3xl bg-black shadow-2xl flex items-center justify-center">
-          <span className="text-white text-sm">Video preview</span>
+
+     <div className="w-[250px] h-[500px] flex items-center justify-center shadow-2xl relative rounded-3xl overflow-hidden bg-black">
+        <svg viewBox="0 0 250 500" xmlns="http://www.w3.org/2000/svg" className="absolute w-full h-full pointer-events-none">
+          <rect rx="40" ry="40" width="250" height="500" fill="#000" />
+          <circle cx="125" cy="20" r="6" fill="#555" /> {/* Kamera */}
+          <rect x="110" y="12" width="30" height="4" rx="2" fill="#555" /> {/* Głośnik */}
+        </svg>
+        <div className="absolute top-8 left-0 right-0 bottom-8 flex items-center justify-center">
+          <video
+            src="/example.mp4"
+            className="h-full w-full object-cover rounded-[30px]"
+            controls
+            playsInline
+          />
         </div>
+      </div>
+
+
       </div>
 
       {/* PRAWA KOLUMNA */}
