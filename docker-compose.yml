@@ -70,3 +70,17 @@ services:
           - "8001:8000"
       restart: unless-stopped
 
+  frontend:
+    build:
+      context: ./frontend
+    container_name: quiztok-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules  # izoluje node_modules wewnątrz kontenera
+    working_dir: /app
+    environment:
+      - NODE_ENV=development
+    restart: unless-stopped
+
