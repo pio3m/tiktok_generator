@@ -62,16 +62,18 @@ export default function App() {
       {/* LEWA KOLUMNA */}
       <div className="basis-1/2 flex flex-col items-center justify-center relative p-8 bg-white">
         <img
-          src="/logo.png" // Podmień na swoją ścieżkę do logo
+          src="/logo.png" 
           alt="QuizTok Logo"
           className="absolute top-8 left-8 w-40"
         />
 
-     <div className="w-[250px] h-[500px] flex items-center justify-center shadow-2xl relative rounded-3xl overflow-hidden bg-black">
+
+    <div className="flex-1 flex justify-center items-center p-4 relative">
+      <div className="relative h-[80vh] aspect-[9/16] flex items-center justify-center shadow-2xl rounded-3xl overflow-hidden bg-black">
         <svg viewBox="0 0 250 500" xmlns="http://www.w3.org/2000/svg" className="absolute w-full h-full pointer-events-none">
           <rect rx="40" ry="40" width="250" height="500" fill="#000" />
-          <circle cx="125" cy="20" r="6" fill="#555" /> {/* Kamera */}
-          <rect x="110" y="12" width="30" height="4" rx="2" fill="#555" /> {/* Głośnik */}
+          <circle cx="125" cy="20" r="6" fill="#555" />
+          <rect x="110" y="12" width="30" height="4" rx="2" fill="#555" />
         </svg>
         <div className="absolute top-8 left-0 right-0 bottom-8 flex items-center justify-center">
           <video
@@ -82,15 +84,15 @@ export default function App() {
           />
         </div>
       </div>
+    </div>
 
-
-      </div>
+    </div>
 
       {/* PRAWA KOLUMNA */}
       <div className="basis-1/2 bg-gray-50 p-10 flex flex-col">
         <button onClick={() => console.log('Back')} className="text-sm text-gray-500 mb-4 self-start">&larr; Back</button>
 
-        <p className="text-sm mb-4 text-gray-600">Wprowadź pytanie i wygeneruj quiz video w kilka sekund.</p>
+        <p className="text-sm mb-4 text-gray-600">Wprowadź pytanie i wygeneruj quiz video.</p>
 
         {/* ZAKŁADKI */}
         <div className="flex mb-6 border border-gray-200 rounded overflow-hidden self-start">
@@ -119,27 +121,24 @@ export default function App() {
             required
           />
 
-          {activeTab === 'advanced' && (
-            <>
-              <input
-                className="w-full bg-white border border-gray-300 p-2 rounded shadow-sm"
-                placeholder="Style (e.g. retro, lata 90)"
-                value={style}
-                onChange={(e) => setStyle(e.target.value)}
-              />
-              <input
-                className="w-full bg-white border border-gray-300 p-2 rounded shadow-sm"
-                placeholder="Category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              />
-            </>
-          )}
+          <input
+            className="w-full bg-white border border-gray-300 p-2 rounded shadow-sm"
+            placeholder="Style (e.g. retro, lata 90)"
+            value={style}
+            onChange={(e) => setStyle(e.target.value)}
+          />
+          <input
+            className="w-full bg-white border border-gray-300 p-2 rounded shadow-sm"
+            placeholder="Category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          />
 
           <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-pink-500 to-orange-400 text-white p-3 rounded font-semibold hover:opacity-90 transition">
-            {loading ? '⏳ Generating...' : '🎬 Create Now!'}
+            {loading ? '⏳ Generating...' : '🎬 Generate Now!'}
           </button>
         </form>
+
 
         {response && (
           <div className="bg-green-100 text-green-700 p-4 rounded mt-6">
