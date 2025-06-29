@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from sequence import generate_sequence
 
+from background import router as background_router
 app = FastAPI()
 
 @app.post("/generate-sequence")
@@ -11,6 +12,10 @@ def handle_generate_sequence(slug: str):
         return {"status": "success", "file": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# Dodaj router z background.py
+app.include_router(background_router)
 
 @app.get("/")
 def root():
