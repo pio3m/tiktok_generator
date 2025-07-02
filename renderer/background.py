@@ -30,7 +30,7 @@ def generate_background_video(payload: SlugInput):
             raise HTTPException(status_code=404, detail="Background image not found")
 
         # Przygotuj katalog wyjściowy w folderze quizu
-        out_dir = os.path.join(DATA, slug, "background")
+        out_dir = os.path.join(DATA, slug, "video")
         os.makedirs(out_dir, exist_ok=True)
         out_video = os.path.join(out_dir, "panning.mp4")
 
