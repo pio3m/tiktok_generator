@@ -1,4 +1,7 @@
 from fastapi import FastAPI, HTTPException
+from segments.fast_full_pipeline import fast_full_pipeline
+from segments.countdown import generate_countdown_segment
+from segments.final_video import generate_fast_final_video
 from segments.reveal import generate_reveal_segment
 from segments.answers import generate_answers_segment
 from segments.question import generate_question_segment
@@ -65,6 +68,44 @@ def generate_reveal_endpoint(payload: SlugInput):
         return {"status": "success", "file": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/generate-countdown-segment", summary="Generuje segment z odliczaniem")
+def generate_countdown_endpoint(payload: SlugInput):
+    """
+    Endpoint do generowania countdown.mp4: tło + odliczanie + beep.
+    """
+    try:
+        result = generate_countdown_segment(payload.slug)
+        return {"status": "success", "file": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/fast-final-video", summary="Szybko generuje finalne wideo TikTok z ambientem")
+def generate_fast_final_endpoint(payload: SlugInput):
+    """
+    Endpoint do szybkiego łączenia segmentów w final.mp4 z ambientem,
+    zapisuje w katalogu slug/output/final.mp4.
+    """
+    try:
+        result = generate_fast_final_video(payload.slug)
+        return {"status": "success", "file": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+@app.post("/fast-full-pipeline", summary="Generuje pełne finalne wideo TikTok w jednym kroku")
+def generate_full_pipeline_endpoint(payload: SlugInput):
+    """
+    Endpoint do automatycznego generowania wszystkich segmentów i final.mp4 w jednym kroku.
+    """
+    try:
+        result = fast_full_pipeline(payload.slug)
+        return {"status": "success", "file": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 # Dodaj router z background.py
 app.include_router(background_router)
