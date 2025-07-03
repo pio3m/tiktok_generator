@@ -38,9 +38,15 @@ export default function App() {
     setResponse(null);
     setCurrentStep(0);
 
-    const payload = { question, style, category };
+    const payload = { question, style, format: "9:16",category };
 
-    const endpoint = 'http://localhost:5678/webhook-test/d6745df8-6e8c-4186-8ef1-73213526f7ad';
+    // const endpoint = 'http://localhost:5678/webhook-test/d6745df8-6e8c-4186-8ef1-73213526f7ad';
+    // const endpoint = process.env.REACT_APP_WEBHOOK_URL;
+
+    // Wybierz endpoint w zależności od aktywnej zakładki
+    const endpoint = activeTab === 'basic'
+      ? process.env.REACT_APP_STANDARD_WEBHOOK
+      : process.env.REACT_APP_ULTRAFAST_WEBHOOK;
 
     try {
       const res = await fetch(endpoint, {
@@ -103,11 +109,12 @@ export default function App() {
             Basic generator
           </button>
           <button
-            className={`px-4 py-2 text-sm font-medium ${activeTab === 'advanced' ? 'bg-white text-orange-600' : 'bg-gray-200 text-gray-600'}`}
-            onClick={() => setActiveTab('advanced')}
-          >
-            Advanced settings
-          </button>
+          className={`px-4 py-2 text-sm font-medium ${activeTab === 'advanced' ? 'bg-white text-orange-600' : 'bg-gray-200 text-gray-600'}`}
+          onClick={() => setActiveTab('advanced')}
+        >
+          ⚡ Ultra Fast generator
+        </button>
+
         </div>
 
         {/* FORMULARZ */}
