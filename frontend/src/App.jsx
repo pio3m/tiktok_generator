@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { ClipLoader } from "react-spinners";
 
-import { CheckCircle, Loader, Clock } from 'lucide-react';
-
 export default function App() {
+  const [videoUrl, setVideoUrl] = useState('/example.mp4'); // domyślny przykład
+
   const [question, setQuestion] = useState('');
   const [style, setStyle] = useState('retro, lata 90');
   const [category, setCategory] = useState('');
@@ -40,28 +40,34 @@ export default function App() {
 
     const payload = { question, style, format: "9:16",category };
 
-    // const endpoint = 'http://localhost:5678/webhook-test/d6745df8-6e8c-4186-8ef1-73213526f7ad';
-    // const endpoint = process.env.REACT_APP_WEBHOOK_URL;
-
-    // Wybierz endpoint w zależności od aktywnej zakładki
     const endpoint = activeTab === 'basic'
-      ? process.env.REACT_APP_STANDARD_WEBHOOK
-      : process.env.REACT_APP_ULTRAFAST_WEBHOOK;
+      ? 'http://localhost:5678/webhook/d6745df8-6e8c-4186-8ef1-73213526f7ad'
+      : 'http://localhost:5678/webhook/6fd90bb0-47b0-4b85-90a2-9c71a9d2904e';
 
-    try {
+    console.log('Sending request to:', endpoint);
+
+   try {
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
       const data = await res.json();
-      setResponse(data);
-    } catch (err) {
-      setResponse({ error: 'Błąd połączenia z backendem' });
-    }
+      console.log('Setting loading true');
+      setLoading(true);
 
-    setLoading(false);
+      if (data.videoUrl) {
+        setVideoUrl(data.videoUrl);  // podmień video na nowe
+      }
+    } catch (err) {
+      console.error(err);
+      // opcjonalnie: obsługa błędu
+    } finally {
+       console.log('Setting loading false');
+       setLoading(false);
+    }
   };
+
 
   return (
     <main className="min-h-screen bg-gray-100 text-gray-900 flex flex-col md:flex-row">
@@ -83,11 +89,13 @@ export default function App() {
         </svg>
         <div className="absolute top-8 left-0 right-0 bottom-8 flex items-center justify-center">
           <video
-            src="/example.mp4"
+            key={videoUrl} // ważne: zmusza Reacta do odświeżenia odtwarzacza przy zmianie URL
+            src={videoUrl}
             className="h-full w-full object-cover rounded-[30px]"
             controls
             playsInline
           />
+
         </div>
       </div>
     </div>

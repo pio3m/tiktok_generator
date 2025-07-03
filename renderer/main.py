@@ -111,6 +111,10 @@ def generate_full_pipeline_endpoint(payload: SlugInput):
 app.include_router(background_router)
 app.include_router(final_video_router)  
 
+from fastapi.staticfiles import StaticFiles
+
+DATA = "/app/data"
+app.mount("/output", StaticFiles(directory=f"{DATA}/output"), name="output")
 
 @app.get("/")
 def root():

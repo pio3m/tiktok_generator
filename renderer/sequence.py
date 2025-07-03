@@ -122,7 +122,7 @@ def generate_sequence(slug: str):
         os.makedirs(os.path.dirname(OUT), exist_ok=True)
         full.write_videofile(OUT, fps=30)
 
-        return {"status": "success", "file": OUT}
+        return {"status": "success", "videoUrl": OUT}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

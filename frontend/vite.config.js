@@ -4,9 +4,15 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: true, // pozwala na dostęp spoza localhost
+    host: true,
     allowedHosts: [
-      'quiztokfront.byst.re' // ⬅️ twoja domena
+      'quiztokfront.byst.re'
     ],
+    proxy: {
+      '/webhook-test': {
+        target: 'http://localhost:5678', // albo do swojego n8n
+        changeOrigin: true,
+      },
+    },
   },
 });
